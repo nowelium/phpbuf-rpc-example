@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<project name="php-protobuf-example" default="usage" basedir=".">
+  <property file="build.properties"/>
+
+  <macrodef name="gen-protos">
+    <attribute name="outdir" />
+    <attribute name="dir" />
+    <attribute name="target" />
+    
+    <sequential>
+      <echo message="java outdir: @{outdir}" />
+      <echo message="protoc execdir: @{dir}" />
+      <echo message="target: @{target}.proto" />
+      
+      <exec executable="/usr/local/bin/protoc" dir="@{dir}" failonerror="true">
+        <arg line="--java_out=@{outdir} @{target}.proto" />
+      </exec>
+    </sequential>
+  </macrodef>
+  
+  <target name="usage">
+    <echo message="" />
+    <echo message="${ant.project.name} usage" />
+    <echo message="--------------------" />
+    <echo message="gen-protobuf   " />
+    <echo message="--------------------" />
+  </target>
+  
+  <target name="gen-protobuf">
+    <gen-protos dir="${basedir}/protos" outdir="${basedir}/src/java" target="ExampleSearch" />
+  </target>
+</project>

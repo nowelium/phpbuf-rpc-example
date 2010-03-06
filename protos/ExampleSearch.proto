@@ -1,0 +1,32 @@
+package com.github.nowelium.phpbuf;
+
+option optimize_for = SPEED;
+
+message Web {
+    enum SiteType {
+        BLOG = 0;
+        NEWS = 1;
+        VIDEO = 2;
+        UNKNOWN = 3;
+    }
+    message Site {
+        required string url = 1;
+        required string title = 2;
+        required SiteType type = 3;
+        optional string summary = 4;
+    }
+}
+message Request {
+    message SearchRequest {
+        required string query = 1;
+    }
+}
+message Response {
+    message SearchResult {
+        repeated Web.Site sites = 1;
+    }
+}
+
+service SearchService {
+    rpc search(Request.SearchRequest) returns(Response.SearchResult);
+}

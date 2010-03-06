@@ -1,0 +1,126 @@
+There are no generators of a code. You self should create classes of messages. 
+
+The detailed description http://memo.undr.su/2009/10/15/realizaciya-google-protocol-buffers-na-php/ (Inside Russian)
+
+Example of usage of library:
+
+protobufer file:
+
+message Message_Example {
+    required int32 id = 1;
+    required sint32 balance = 2;
+    required bool isAdmin = 3;
+    enum Status {
+        active = 0;
+        inactive = 1;
+        deleted = 2;
+    }
+    required enum Status status = 4;
+    required string name = 5;
+    required bytes bytes = 6;
+}
+
+php code:
+
+<?php
+/**
+ * Class of message
+ *
+ */
+class Message_Example extends PhpBuf_Message_Abstract {
+    public function __construct() {
+        $this->setField("id", PhpBuf_Type::INT, PhpBuf_Rule::REQUIRED, 1);
+        $this->setField("balance", PhpBuf_Type::SINT, PhpBuf_Rule::REQUIRED, 2);
+        $this->setField("isAdmin", PhpBuf_Type::BOOL, PhpBuf_Rule::REQUIRED, 3);
+        $this->setField("status", PhpBuf_Type::ENUM, PhpBuf_Rule::REQUIRED, 4, array("active", "inactive", "deleted"));
+        $this->setField("name", PhpBuf_Type::STRING, PhpBuf_Rule::REQUIRED, 5);
+        $this->setField("bytes", PhpBuf_Type::BYTES, PhpBuf_Rule::REQUIRED, 6);
+    }
+}
+
+/**
+ * Work with message
+ */
+require_once("/phpbuf/lib/PhpBuf.php");
+
+$message = new Message_Example();
+$writer = new PhpBuf_IO_Writer();
+$message->id = 150;
+$message->balance = -12345;
+$message->isAdmin = true;
+$message->status = "deleted";
+$message->name = "Andrey Lepeshkin";
+$message->bytes = "Some bytes";
+$message->write($writer);
+                
+$reader = PhpBuf_IO_Reader::createFromWriter($writer);
+$message = new Message_Example();
+$message->read($reader);
+                
+$this->assertEquals(150, $message->id);
+$this->assertEquals(-12345, $message->balance);         
+$this->assertTrue($message->isAdmin);
+$this->assertEquals("deleted", $message->status);               
+$this->assertEquals("Andrey Lepeshkin", $message->name);                
+$this->assertEquals("Some bytes", $message->bytes);  
+
+?>
+
+RPC call:
+----
+
+RPC call required implements: http://code.google.com/p/protobuf-socket-rpc/
+
+package com.example.protobuf;
+
+message Request {
+    message Hoge {
+        required string value = 1;
+    }
+}
+message Response {
+    message Foo {
+        repeated string values = 1;
+    }
+}
+
+service MyService {
+    rpc sayHello(Request.Hoge) returns(Response.Foo);
+}
+
+php code:
+
+<?php
+
+class Request_Hoge extends PhpBuf_Message_Abstract {
+    public function __construct(){
+        $this->setField('value', PhpBuf_Type::STRING, PhpBuf_Rule::REQUIRED, 1);
+    }
+    public static function name(){
+        return __CLASS__;
+    }
+}
+class Response_Foo extends PhpBuf_Message_Abstract {
+    public function __construct(){
+        $this->setField('values', PhpBuf_Type::STRING, PhpBuf_Rule::REPEATED, 1);
+    }
+    public static function name(){
+        return __CLASS__;
+    }
+}
+
+class MyService extends PhpBuf_RPC_Socket_Service_Client {
+    public function __construct($host, $port){
+        parent::__construct($host, $port);
+        $this->setServiceFullQualifiedName('com.example.protobuf.MyService');
+        $this->registerMethodResponderClass('sayHello', Response_Foo::name());
+    }
+}
+
+$request = new Request_Hoge;
+$request->value = 'hello world';
+
+$service = new MyService('127.0.0.1', 12345);
+$response = $service->sayHello($request);
+
+?>
