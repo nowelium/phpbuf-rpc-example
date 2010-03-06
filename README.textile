@@ -6,26 +6,32 @@ h3. Server:
 
 h4. build:
 
+<pre>
   shell > cd PHPBufExample
   shell > ant build
+</pre>
 
 h4. run-server:
 
+<pre>
   shell > ant start-server
+</pre>
 
 h3. Client:
 
 h4. run-client:
 
+<pre>
   shell > cd PHPBufExample/src/php
   shell > php search_client.php
-
+</pre>
 
 h2. Example code:
 
 
 h3. proto file:
-    
+  
+<pre>
 <code>
 package com.github.nowelium.phpbuf;
 option optimize_for = SPEED;
@@ -57,10 +63,11 @@ service SearchService {
     rpc search(Request.SearchRequest) returns(Response.SearchResult);
 }
 </code>
-
+</pre>
 
 h3. server side(java):
 
+<pre>
 <code>
 public class Server {
     public static void main(String...args){
@@ -106,10 +113,11 @@ public class SearchServiceImpl implements ExampleSearch.SearchService.BlockingIn
     }
 }
 </code>
-
+</pre>
 
 h3. client side(php):
 
+<pre>
 <code>
 <?php
 
@@ -168,4 +176,5 @@ class Message_SiteType extends Message_Enum_Abstract {
     }
 }
 </code>
+</pre>
 
