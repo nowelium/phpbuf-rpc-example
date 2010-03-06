@@ -19,8 +19,10 @@ Usage:
 
 
 Example code:
+----
 
-proto file:
+  proto file:
+  ----
 
     package com.github.nowelium.phpbuf;
     option optimize_for = SPEED;
@@ -52,7 +54,8 @@ proto file:
         rpc search(Request.SearchRequest) returns(Response.SearchResult);
     }
 
-server side(java):
+  server side(java):
+  ----
 
     public class Server {
         public static void main(String...args){
@@ -98,7 +101,8 @@ server side(java):
         }
     }
 
-client side(php):
+  client side(php):
+  ----
 
     <?php
 
