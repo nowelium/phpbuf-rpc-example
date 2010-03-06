@@ -1,0 +1,159 @@
+phpbuf-rpc example:
+----
+
+Usage:
+----
+
+    Server:
+      build:
+        shell > cd PHPBufExample
+        shell > ant build
+
+      run-server:
+        shell > ant start-server
+
+    Client:
+      run-client:
+        shell > cd PHPBufExample/src/php
+        shell > php search_client.php
+
+
+Example code:
+
+proto file:
+
+    package com.github.nowelium.phpbuf;
+    option optimize_for = SPEED;
+    message Web {
+        enum SiteType {
+            BLOG = 0;
+            NEWS = 1;
+            VIDEO = 2;
+            UNKNOWN = 3;
+        }
+        message Site {
+            required string url = 1;
+            required string title = 2;
+            required SiteType type = 3;
+            optional string summary = 4;
+        }
+    }
+    message Request {
+        message SearchRequest {
+            required string query = 1;
+        }
+    }
+    message Response {
+        message SearchResult {
+            repeated Web.Site sites = 1;
+        }
+    }
+    service SearchService {
+        rpc search(Request.SearchRequest) returns(Response.SearchResult);
+    }
+
+server side(java):
+
+    public class Server {
+        public static void main(String...args){
+            SocketRpcServer server = new SocketRpcServer(12345, Executors.newCachedThreadPool());
+            server.registerBlockingService(SearchService.newReflectiveBlockingService(new SearchServiceImpl()));
+            try {
+                server.startServer();
+                synchronized(server){
+                    server.wait();
+                }
+            } catch(InterruptedException e){
+                // nop
+            } finally {
+                server.shutDown();
+            }
+        }
+    }
+    public class SearchServiceImpl implements ExampleSearch.SearchService.BlockingInterface {
+        private final Logger logger = Logger.getLogger(SearchServiceImpl.class.getName());
+
+        public SearchResult search(RpcController controller, SearchRequest request) throws ServiceException {
+            String query = request.getQuery();
+            logger.info("input query => " + query);
+            return search(query);
+        }
+        protected SearchResult search(String query){
+            final SearchResult.Builder result = SearchResult.newBuilder();
+            {
+                Web.Site.Builder builder = Web.Site.newBuilder();
+                builder.setTitle("example 1 - " + query);
+                builder.setUrl("http://www.example.com/");
+                builder.setType(SiteType.NEWS);
+                result.addSites(builder.build());
+            }
+            {
+                Web.Site.Builder builder = Web.Site.newBuilder();
+                builder.setTitle("example 2 - " + query);
+                builder.setUrl("http://www.example.net/");
+                builder.setType(SiteType.UNKNOWN);
+                result.addSites(builder.build());
+            }
+            return result.build();
+        }
+    }
+
+client side(php):
+
+    <?php
+
+    $request = new Message_Request_SearchRequest;
+    $request->query = 'hello world';
+
+    $service = new Service_SearchService('localhost', 12345);
+    $result = $service->search($request);
+
+    foreach($result->sites as $site){
+        echo 'title => ', $site->title, PHP_EOL;
+        echo 'url => ', $site->url, PHP_EOL;
+        echo 'type => ', $site->type, PHP_EOL;
+        echo PHP_EOL;
+    }
+
+    class Message_Request_SearchRequest extends PhpBuf_Message_Abstract {
+        public function __construct(){
+            $this->setField('query', PhpBuf_Type::STRING, PhpBuf_Rule::REQUIRED, 1);
+        }
+        public static function name(){
+            return __CLASS__;
+        }
+    }
+    class Message_Response_SearchResult extends PhpBuf_Message_Abstract {
+        public function __construct(){
+            $this->setField('sites', PhpBuf_Type::MESSAGE, PhpBuf_Rule::REPEATED, 1, Message_Web_Site::name());
+        }
+        public static function name(){
+            return __CLASS__;
+        }
+    }
+    class Message_Web_Site extends PhpBuf_Message_Abstract {
+        public function __construct(){
+            $this->setField('url', PhpBuf_Type::STRING, PhpBuf_Rule::REQUIRED, 1);
+            $this->setField('title', PhpBuf_Type::STRING, PhpBuf_Rule::REQUIRED, 2);
+            $this->setField('type', PhpBuf_Type::ENUM, PhpBuf_Rule::REQUIRED, 3, Message_SiteType::values());
+            $this->setField('summary', PhpBuf_Type::STRING, PhpBuf_Rule::OPTIONAL, 4);
+        }
+        public static function name(){
+            return __CLASS__;
+        }
+    }
+    class Message_SiteType extends Message_Enum_Abstract {
+        const BLOG = 0;
+        const NEWS = 1;
+        const VIDEO = 2;
+        const UNKNOWN = 3;
+        public static function values(){
+            return array(
+                self::BLOG,
+                self::NEWS,
+                self::VIDEO,
+                self::UNKNOWN
+            );
+        }
+    }
+

@@ -2,8 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src/java"/>
 	<classpathentry kind="src" path="src/php"/>
-	<classpathentry kind="src" path="lib/protobuf-socket-rpc/java/src/main"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JVM 1.6"/>
 	<classpathentry kind="lib" path="lib/protobuf-java-2.2.0.jar"/>
+	<classpathentry kind="lib" path="lib/protobuf-socket-rpc.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

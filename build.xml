@@ -22,11 +22,35 @@
     <echo message="" />
     <echo message="${ant.project.name} usage" />
     <echo message="--------------------" />
-    <echo message="gen-protobuf   " />
+    <echo message="gen-protobuf        " />
+    <echo message="build               " />
+    <echo message="start-server        " />
     <echo message="--------------------" />
   </target>
   
   <target name="gen-protobuf">
     <gen-protos dir="${basedir}/protos" outdir="${basedir}/src/java" target="ExampleSearch" />
+  </target>
+  
+  <target name="build" depends="gen-protobuf">
+    <delete dir="${basedir}/bin" />
+    <mkdir dir="${basedir}/bin"/>
+
+    <javac srcdir="${basedir}/src/java" destdir="${basedir}/bin">
+      <classpath>
+        <pathelement path="${basedir}/lib/protobuf-java-2.2.0.jar"/>
+        <pathelement path="${basedir}/lib/protobuf-socket-rpc.jar"/>
+      </classpath>
+    </javac>
+  </target>
+  
+  <target name="start-server">
+    <java classname="com.github.nowelium.phpbuf.Server">
+      <classpath>
+        <pathelement path="${basedir}/bin" />
+        <pathelement path="${basedir}/lib/protobuf-java-2.2.0.jar"/>
+        <pathelement path="${basedir}/lib/protobuf-socket-rpc.jar"/>
+      </classpath>
+    </java>
   </target>
 </project>
